@@ -24,6 +24,7 @@
 - [Docker Support](#-docker-support)
 - [Framework Design Patterns](#-framework-design-patterns)
 - [Configuration](#-configuration)
+- [Test Results](#-test-results)
 - [Contributing](#-contributing)
 
 ---
@@ -339,6 +340,19 @@ The **Viewer** user can only view data — all write operations are blocked:
 | **Performance** | 3+ | Page load, LCP, FCP metrics |
 | **API** | 5+ | REST endpoint validation |
 | **Total** | **85+** | Comprehensive full-stack coverage |
+
+---
+
+## 📊 Test Results
+
+For the complete, enterprise-grade test case results document with **85 test cases**, detailed steps, expected vs actual results, and sign-off section, see:
+
+👉 **[docs/TEST-RESULTS.md](docs/TEST-RESULTS.md)**
+
+Highlights:
+- **96.5% pass rate** (82 passed, 0 failed, 3 skipped)
+- Covers **10 test categories** (E2E Admin, E2E Viewer, RBAC, Security, A11y, Visual, Performance, API)
+- Professional format with TC-IDs, priorities, preconditions, and defect tracking
 
 ---
 
