@@ -1,5 +1,5 @@
-const { test, expect } = require('../../../src/fixtures/test-fixtures');
-const loginData = require('../../../src/config/test-data/login.json');
+const { test, expect } = require('../../../../src/fixtures/test-fixtures');
+const loginData = require('../../../../src/config/test-data/login.json');
 
 /**
  * Login Feature — Data-Driven Test Suite

@@ -1,4 +1,4 @@
-const { test, expect } = require('../../../src/fixtures/test-fixtures');
+const { test, expect } = require('../../../../src/fixtures/test-fixtures');
 
 /**
  * ╔══════════════════════════════════════════════════════════════════════════════════╗
@@ -33,11 +33,11 @@ const { test, expect } = require('../../../src/fixtures/test-fixtures');
  * @tags @showcase @demo @regression @full-flow @smoke
  */
 
-const LoginPage = require('../../../src/pages/LoginPage');
-const DashboardPage = require('../../../src/pages/DashboardPage');
-const AccountsPage = require('../../../src/pages/AccountsPage');
-const TransactionsPage = require('../../../src/pages/TransactionsPage');
-const NavigationBar = require('../../../src/components/NavigationBar');
+const LoginPage = require('../../../../src/pages/LoginPage');
+const DashboardPage = require('../../../../src/pages/DashboardPage');
+const AccountsPage = require('../../../../src/pages/AccountsPage');
+const TransactionsPage = require('../../../../src/pages/TransactionsPage');
+const NavigationBar = require('../../../../src/components/NavigationBar');
 
 const ENV = {
   BASE_URL: process.env.BASE_URL || 'https://qaplayground.com/bank',

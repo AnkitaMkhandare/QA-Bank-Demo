@@ -1,4 +1,4 @@
-const { test, expect } = require('../../../src/fixtures/test-fixtures');
+const { test, expect } = require('../../../../src/fixtures/test-fixtures');
 
 /**
  * End-to-End Happy Path Flow

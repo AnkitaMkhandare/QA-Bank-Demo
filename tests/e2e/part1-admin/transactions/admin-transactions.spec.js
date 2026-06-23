@@ -1,5 +1,5 @@
-const { test, expect } = require('../../../src/fixtures/test-fixtures');
-const txnData = require('../../../src/config/test-data/transactions.json');
+const { test, expect } = require('../../../../src/fixtures/test-fixtures');
+const txnData = require('../../../../src/config/test-data/transactions.json');
 
 /**
  * Transactions Feature — Data-Driven Test Suite

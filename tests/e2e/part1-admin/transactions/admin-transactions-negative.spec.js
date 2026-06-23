@@ -1,4 +1,4 @@
-const { test, expect } = require('../../../src/fixtures/test-fixtures');
+const { test, expect } = require('../../../../src/fixtures/test-fixtures');
 
 /**
  * New Transaction Feature — Negative Test Scenarios

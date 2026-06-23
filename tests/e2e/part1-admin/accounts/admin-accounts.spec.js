@@ -1,4 +1,4 @@
-const { test, expect } = require('../../../src/fixtures/test-fixtures');
+const { test, expect } = require('../../../../src/fixtures/test-fixtures');
 
 /**
  * Accounts Feature — Add Account via 3-Step Wizard
