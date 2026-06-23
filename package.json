@@ -1,17 +1,52 @@
 {
-  "name": "bank-project",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "bank-automation-framework",
+  "version": "2.0.0",
+  "description": "Professional E2E Test Automation Framework for Banking Application — Playwright + POM + Data-Driven",
+  "author": "Ankita Mkhandare",
+  "license": "MIT",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "test:chromium": "npx playwright test --project=chromium",
+    "test:firefox": "npx playwright test --project=firefox",
+    "test:webkit": "npx playwright test --project=webkit",
+    "test:smoke": "npx playwright test --grep=\"@smoke|@critical\"",
+    "test:regression": "npx playwright test --grep=\"@regression\"",
+    "test:headed": "npx playwright test --headed --project=chromium",
+    "test:debug": "DEBUG=true npx playwright test --debug --project=chromium",
+    "test:parallel": "npx playwright test --workers=4",
+    "test:ci": "CI=true npx playwright test",
+    "report": "npx playwright show-report reports/html-report",
+    "report:generate": "npx playwright test --reporter=html",
+    "clean": "rimraf reports test-results",
+    "lint": "eslint src/ tests/",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\"",
+    "docker:build": "docker build -t bank-tests .",
+    "docker:run": "docker run --rm -v ./reports:/app/reports bank-tests",
+    "docker:smoke": "docker-compose --profile smoke up --abort-on-container-exit",
+    "docker:full": "docker-compose --profile full up --abort-on-container-exit",
+    "setup": "npm install && npx playwright install --with-deps"
+  },
   "dependencies": {
     "@playwright/test": "^1.60.0",
     "playwright": "^1.60.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "playwright",
+    "automation",
+    "testing",
+    "e2e",
+    "page-object-model",
+    "data-driven",
+    "banking",
+    "qa"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AnkitaMkhandare/QA-Bank-Demo.git"
   }
 }

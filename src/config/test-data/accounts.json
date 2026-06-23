@@ -1,0 +1,115 @@
+{
+  "createAccount": [
+    {
+      "testId": "TC-ACC-01-A",
+      "description": "Create Primary Savings account with minimum deposit",
+      "type": "savings",
+      "name": "Primary Savings",
+      "deposit": "500",
+      "expectedType": "Savings",
+      "tags": ["@smoke", "@critical"]
+    },
+    {
+      "testId": "TC-ACC-01-B",
+      "description": "Create Business Checking account",
+      "type": "checking",
+      "name": "Business Checking",
+      "deposit": "2500",
+      "expectedType": "Checking",
+      "tags": ["@smoke"]
+    },
+    {
+      "testId": "TC-ACC-01-C",
+      "description": "Create Emergency Fund with large deposit",
+      "type": "savings",
+      "name": "Emergency Fund",
+      "deposit": "10000",
+      "expectedType": "Savings",
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-ACC-01-D",
+      "description": "Create Joint Checking Account",
+      "type": "checking",
+      "name": "Joint Account",
+      "deposit": "5000",
+      "expectedType": "Checking",
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-ACC-01-E",
+      "description": "Create Fixed Deposit savings with high value",
+      "type": "savings",
+      "name": "Fixed Deposit",
+      "deposit": "50000",
+      "expectedType": "Savings",
+      "tags": ["@regression"]
+    }
+  ],
+  "editAccount": [
+    {
+      "testId": "TC-ACC-02-A",
+      "description": "Rename savings account to Premium Savings",
+      "createFirst": {
+        "type": "savings",
+        "name": "Edit Target One",
+        "deposit": "1000"
+      },
+      "newName": "Renamed Premium Savings",
+      "tags": ["@smoke"]
+    },
+    {
+      "testId": "TC-ACC-02-B",
+      "description": "Rename checking account to Corporate Account",
+      "createFirst": {
+        "type": "checking",
+        "name": "Edit Target Two",
+        "deposit": "3000"
+      },
+      "newName": "Corporate Account 2024",
+      "tags": ["@regression"]
+    }
+  ],
+  "deleteAccount": [
+    {
+      "testId": "TC-ACC-03-A",
+      "description": "Delete savings account with confirmation",
+      "accountToCreate": {
+        "type": "savings",
+        "name": "Delete Target Savings",
+        "deposit": "100"
+      },
+      "tags": ["@smoke"]
+    },
+    {
+      "testId": "TC-ACC-03-B",
+      "description": "Delete checking account with confirmation",
+      "accountToCreate": {
+        "type": "checking",
+        "name": "Delete Target Checking",
+        "deposit": "200"
+      },
+      "tags": ["@regression"]
+    }
+  ],
+  "filterAccounts": {
+    "testId": "TC-ACC-04",
+    "description": "Filter accounts by type",
+    "filters": [
+      { "type": "Savings", "expectedMinCount": 1 },
+      { "type": "Checking", "expectedMinCount": 1 },
+      { "type": "All", "expectedMinCount": 1 }
+    ],
+    "tags": ["@regression"]
+  },
+  "sortAccounts": {
+    "testId": "TC-ACC-05",
+    "description": "Sort accounts by balance",
+    "sortOptions": [
+      { "field": "balance", "order": "ascending" },
+      { "field": "balance", "order": "descending" },
+      { "field": "name", "order": "ascending" }
+    ],
+    "tags": ["@regression"]
+  }
+}

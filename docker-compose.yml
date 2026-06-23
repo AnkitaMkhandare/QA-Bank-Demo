@@ -1,0 +1,101 @@
+# ─── Docker Compose for Test Automation Framework ──────────────────────────────────
+# Run tests in isolated, reproducible containers.
+#
+# Usage:
+#   docker-compose up                    # Run all tests (chromium)
+#   docker-compose up test-firefox       # Run Firefox tests
+#   docker-compose up test-all           # Run all browsers
+#   docker-compose --profile full up     # Run full regression
+
+version: '3.9'
+
+services:
+  # ─── Chromium Tests (Default) ───────────────────────────────────────────────────
+  test-chromium:
+    build: .
+    container_name: bank-tests-chromium
+    environment:
+      - CI=true
+      - HEADLESS=true
+      - TEST_ENV=${TEST_ENV:-qa}
+      - BASE_URL=${BASE_URL:-https://qaplayground.com/bank}
+    command: npx playwright test --project=chromium
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
+    networks:
+      - test-network
+
+  # ─── Firefox Tests ──────────────────────────────────────────────────────────────
+  test-firefox:
+    build: .
+    container_name: bank-tests-firefox
+    environment:
+      - CI=true
+      - HEADLESS=true
+      - TEST_ENV=${TEST_ENV:-qa}
+      - BASE_URL=${BASE_URL:-https://qaplayground.com/bank}
+    command: npx playwright test --project=firefox
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
+    profiles:
+      - full
+    networks:
+      - test-network
+
+  # ─── WebKit Tests ───────────────────────────────────────────────────────────────
+  test-webkit:
+    build: .
+    container_name: bank-tests-webkit
+    environment:
+      - CI=true
+      - HEADLESS=true
+      - TEST_ENV=${TEST_ENV:-qa}
+      - BASE_URL=${BASE_URL:-https://qaplayground.com/bank}
+    command: npx playwright test --project=webkit
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
+    profiles:
+      - full
+    networks:
+      - test-network
+
+  # ─── All Browsers (Parallel) ────────────────────────────────────────────────────
+  test-all:
+    build: .
+    container_name: bank-tests-all
+    environment:
+      - CI=true
+      - HEADLESS=true
+      - TEST_ENV=${TEST_ENV:-qa}
+      - BASE_URL=${BASE_URL:-https://qaplayground.com/bank}
+    command: npx playwright test
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
+    profiles:
+      - full
+    networks:
+      - test-network
+
+  # ─── Smoke Tests Only ───────────────────────────────────────────────────────────
+  test-smoke:
+    build: .
+    container_name: bank-tests-smoke
+    environment:
+      - CI=true
+      - HEADLESS=true
+      - TEST_ENV=${TEST_ENV:-qa}
+    command: npx playwright test --project=chromium --grep="@smoke|@critical"
+    volumes:
+      - ./reports:/app/reports
+    profiles:
+      - smoke
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

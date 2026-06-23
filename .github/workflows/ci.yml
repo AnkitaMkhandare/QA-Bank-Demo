@@ -1,0 +1,181 @@
+# ─── CI/CD Pipeline for Bank Automation Framework ──────────────────────────────────
+# Triggers on: Push to main, Pull Requests, Nightly Schedule
+# 
+# Pipeline stages:
+# 1. Lint & Validate
+# 2. Run Tests (parallel across browsers)
+# 3. Upload Reports & Artifacts
+# 4. Notify on failure
+
+name: 🧪 E2E Test Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Nightly regression run at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - qa
+          - staging
+      browser:
+        description: 'Browser to test'
+        required: true
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
+
+env:
+  CI: true
+  TEST_ENV: ${{ github.event.inputs.environment || 'qa' }}
+  BASE_URL: https://qaplayground.com/bank
+  NODE_VERSION: '18'
+
+jobs:
+  # ─── Lint & Setup ──────────────────────────────────────────────────────────────
+  setup:
+    name: 📋 Setup & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate configuration
+        run: npx playwright test --list
+
+  # ─── E2E Tests ─────────────────────────────────────────────────────────────────
+  e2e-tests:
+    name: 🧪 E2E Tests (${{ matrix.project }})
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.project }}
+
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.project }}
+        env:
+          CI: true
+          TEST_ENV: ${{ env.TEST_ENV }}
+          HEADLESS: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.project }}
+          path: |
+            reports/
+            test-results/
+          retention-days: 14
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-${{ matrix.project }}
+          path: reports/html-report/
+          retention-days: 14
+
+  # ─── Smoke Tests (PR Only) ─────────────────────────────────────────────────────
+  smoke-tests:
+    name: 🔥 Smoke Tests (PR Gate)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        run: npx playwright test --project=chromium --grep="@smoke|@critical"
+        env:
+          CI: true
+          HEADLESS: true
+
+      - name: Upload smoke results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: reports/
+          retention-days: 7
+
+  # ─── Test Summary ──────────────────────────────────────────────────────────────
+  summary:
+    name: 📊 Test Summary
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-results
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Browser | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          for dir in all-results/test-results-*/; do
+            browser=$(basename "$dir" | sed 's/test-results-//')
+            if [ -d "$dir" ]; then
+              echo "| $browser | ✅ Artifacts uploaded |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 Download full reports from the Artifacts section above." >> $GITHUB_STEP_SUMMARY

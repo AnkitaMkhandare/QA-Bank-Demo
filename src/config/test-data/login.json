@@ -1,0 +1,83 @@
+{
+  "validCredentials": [
+    {
+      "testId": "TC-LOGIN-01",
+      "description": "Admin login with valid credentials",
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin",
+      "expectedRedirect": "/bank/dashboard",
+      "expectedUserDisplay": "admin",
+      "tags": ["@smoke", "@critical"]
+    },
+    {
+      "testId": "TC-LOGIN-05",
+      "description": "Viewer login with read-only access",
+      "username": "viewer",
+      "password": "viewer123",
+      "role": "viewer",
+      "expectedRedirect": "/bank/dashboard",
+      "expectedUserDisplay": "viewer",
+      "tags": ["@smoke"]
+    }
+  ],
+  "invalidCredentials": [
+    {
+      "testId": "TC-LOGIN-02-A",
+      "description": "Login with wrong password",
+      "username": "admin",
+      "password": "wrongpassword",
+      "expectedError": "Invalid credentials",
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-LOGIN-02-B",
+      "description": "Login with non-existent username",
+      "username": "nonexistent",
+      "password": "admin123",
+      "expectedError": "Invalid credentials",
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-LOGIN-02-C",
+      "description": "Login with empty username",
+      "username": "",
+      "password": "admin123",
+      "expectedError": "Invalid credentials",
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-LOGIN-02-D",
+      "description": "Login with empty password",
+      "username": "admin",
+      "password": "",
+      "expectedError": "Invalid credentials",
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-LOGIN-02-E",
+      "description": "Login with special characters",
+      "username": "<script>alert('xss')</script>",
+      "password": "'; DROP TABLE users; --",
+      "expectedError": "Invalid credentials",
+      "tags": ["@regression", "@security"]
+    }
+  ],
+  "fieldValidation": {
+    "testId": "TC-LOGIN-03",
+    "description": "Login button disabled when fields are empty",
+    "scenarios": [
+      { "username": "", "password": "", "buttonEnabled": false },
+      { "username": "admin", "password": "", "buttonEnabled": false },
+      { "username": "", "password": "admin123", "buttonEnabled": false },
+      { "username": "admin", "password": "admin123", "buttonEnabled": true }
+    ],
+    "tags": ["@regression"]
+  },
+  "passwordMasking": {
+    "testId": "TC-LOGIN-04",
+    "description": "Password field should mask input",
+    "expectedInputType": "password",
+    "tags": ["@regression", "@security"]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "createTransaction": [
+    {
+      "testId": "TC-TXN-01-A",
+      "description": "Create deposit transaction and verify balance update",
+      "type": "Deposit",
+      "fromAccount": "Primary Savings",
+      "amount": "500",
+      "expectedBalanceChange": 500,
+      "tags": ["@smoke", "@critical"]
+    },
+    {
+      "testId": "TC-TXN-01-B",
+      "description": "Create withdrawal transaction",
+      "type": "Withdrawal",
+      "fromAccount": "Primary Savings",
+      "amount": "200",
+      "expectedBalanceChange": -200,
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-TXN-01-C",
+      "description": "Create large deposit",
+      "type": "Deposit",
+      "fromAccount": "Primary Savings",
+      "amount": "10000",
+      "expectedBalanceChange": 10000,
+      "tags": ["@regression"]
+    },
+    {
+      "testId": "TC-TXN-01-D",
+      "description": "Create minimum amount transaction",
+      "type": "Deposit",
+      "fromAccount": "Primary Savings",
+      "amount": "1",
+      "expectedBalanceChange": 1,
+      "tags": ["@regression"]
+    }
+  ],
+  "filterByAccount": {
+    "testId": "TC-TXN-02",
+    "description": "Filter transactions by account selection",
+    "accounts": ["Primary Savings", "All Accounts"],
+    "tags": ["@regression"]
+  },
+  "filterByDate": {
+    "testId": "TC-TXN-03",
+    "description": "Filter transactions by date range using calendar",
+    "dateRanges": [
+      {
+        "description": "Last 7 days",
+        "daysBack": 7,
+        "expectedMinCount": 0
+      },
+      {
+        "description": "Last 30 days",
+        "daysBack": 30,
+        "expectedMinCount": 0
+      }
+    ],
+    "tags": ["@regression"]
+  },
+  "exportCsv": {
+    "testId": "TC-TXN-04",
+    "description": "Export transactions as CSV file",
+    "expectedFileExtension": ".csv",
+    "expectedHeaders": ["Date", "Type", "Account", "Amount"],
+    "tags": ["@regression"]
+  },
+  "transactionDetail": {
+    "testId": "TC-TXN-05",
+    "description": "View transaction detail page",
+    "expectedFields": ["type", "amount", "date", "account"],
+    "tags": ["@regression"]
+  }
+}
