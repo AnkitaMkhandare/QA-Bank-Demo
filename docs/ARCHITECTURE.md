@@ -1,192 +1,154 @@
-# 🏗️ Framework Architecture
+# 🏗️ Architecture Documentation
 
-## Overview
-
-This document describes the architectural decisions, design patterns, and structural organization of the Bank Automation Framework.
+> Technical architecture of the QA Bank Demo automation framework.
 
 ---
 
-## Design Principles
+## Framework Architecture Overview
 
-| Principle | Application |
-|-----------|-------------|
-| **Separation of Concerns** | Pages, components, data, and tests are fully isolated |
-| **DRY (Don't Repeat Yourself)** | Common actions in BasePage, shared fixtures |
-| **Single Responsibility** | Each class/file has one clear purpose |
-| **Open/Closed** | Easy to extend (add pages/tests) without modifying existing code |
-| **Dependency Injection** | Page objects injected via Playwright fixtures |
-
----
-
-## Layer Architecture
+This framework follows a **layered architecture** with clear separation of concerns:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    TEST LAYER                            │
-│  tests/e2e/login/ | dashboard/ | accounts/ | flows/     │
-│  (Test scenarios, assertions, business logic)           │
-├─────────────────────────────────────────────────────────┤
-│                  FIXTURE LAYER                           │
-│  src/fixtures/test-fixtures.js                          │
-│  (Dependency injection, session management)             │
-├─────────────────────────────────────────────────────────┤
-│                PAGE OBJECT LAYER                         │
-│  src/pages/LoginPage.js | DashboardPage.js | etc.       │
-│  (Page-specific actions, selectors, validations)        │
-├─────────────────────────────────────────────────────────┤
-│               COMPONENT LAYER                           │
-│  src/components/NavigationBar.js | Modal.js | DataTable │
-│  (Reusable UI patterns across pages)                   │
-├─────────────────────────────────────────────────────────┤
-│                 BASE LAYER                              │
-│  src/pages/BasePage.js                                  │
-│  (Common actions, smart waits, logging, assertions)     │
-├─────────────────────────────────────────────────────────┤
-│               UTILITY LAYER                             │
-│  src/utils/RetryHelper.js | AssertionHelper.js          │
-│  (Cross-cutting concerns, helpers)                      │
-├─────────────────────────────────────────────────────────┤
-│             CONFIGURATION LAYER                         │
-│  src/config/env.config.js | test-data/*.json            │
-│  (Environment settings, test data)                      │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    TEST SPECS LAYER                          │
+│                                                             │
+│  Part 1: Admin (CRUD)  │  Part 2: Viewer (Read-Only)      │
+│  Cross-Role: RBAC      │  Non-E2E: API, Visual, A11y, etc │
+├─────────────────────────────────────────────────────────────┤
+│                  FIXTURES LAYER                             │
+│  test-fixtures.js — Dependency Injection                   │
+│  Provides: Page Objects, Test Data, Config                 │
+├─────────────────────────────────────────────────────────────┤
+│                 PAGE OBJECTS LAYER                          │
+│  BasePage (Abstract) ← LoginPage, DashboardPage,          │
+│                         AccountsPage, TransactionsPage     │
+├─────────────────────────────────────────────────────────────┤
+│                 COMPONENTS LAYER                           │
+│  NavigationBar │ Modal │ DataTable                         │
+├─────────────────────────────────────────────────────────────┤
+│                 UTILITIES LAYER                            │
+│  RetryHelper │ AssertionHelper │ A11yHelper │ PerfHelper   │
+├─────────────────────────────────────────────────────────────┤
+│                    API LAYER                               │
+│  ApiClient │ BankApiService │ SchemaValidator              │
+├─────────────────────────────────────────────────────────────┤
+│                  CONFIG LAYER                              │
+│  env.config.js │ test-data/*.json │ .env                  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Design Patterns
+## Role-Based Test Architecture
 
-### 1. Page Object Model (POM)
+The E2E tests are organized into three distinct sections based on user roles:
 
-Each page in the application has a corresponding Page Object class:
+### Part 1: Admin Role Tests (`tests/e2e/part1-admin/`)
 
-```javascript
-// BasePage provides common actions
-class LoginPage {
-  static SELECTORS = { ... };    // Centralized selectors
-  async login(user, pass) { }    // Page-specific actions
-  async isLoaded() { }           // Load verification
-}
-```
+Tests full CRUD operations available to the admin user:
 
-**Benefits:**
-- Selectors are maintained in one place
-- Test code reads like business requirements
-- Changes to UI only require updating one file
+| Module | File | Responsibilities |
+|--------|------|-----------------|
+| Login | `admin-login.spec.js` | Valid/invalid login, session management |
+| Dashboard | `admin-dashboard.spec.js` | Content verification, navigation |
+| Accounts | `admin-accounts.spec.js` | Create, read, edit, delete accounts |
+| Accounts | `admin-accounts-negative.spec.js` | Boundary values, error handling |
+| Transactions | `admin-transactions.spec.js` | Deposit, withdrawal, transfer |
+| Transactions | `admin-transactions-new.spec.js` | New transaction creation flows |
+| Transactions | `admin-transactions-negative.spec.js` | Invalid amounts, same-account transfer |
+| Flows | `admin-happy-path.spec.js` | End-to-end happy path |
+| Flows | `admin-showcase.spec.js` | 7-stage complete demo flow |
 
-### 2. Custom Fixtures (Dependency Injection)
+### Part 2: Viewer Role Tests (`tests/e2e/part2-viewer/`)
 
-```javascript
-const test = base.extend({
-  loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page));
-  },
-  adminSession: async ({ page }, use) => {
-    // Pre-authenticated session
-    await login(page);
-    await use({ page, dashboard, accounts, ... });
-  },
-});
-```
+Tests read-only access — verifies write actions are hidden or blocked:
 
-**Benefits:**
-- No manual instantiation in tests
-- Consistent setup/teardown
-- Easy to create pre-conditions (authenticated sessions)
+| Module | File | Responsibilities |
+|--------|------|-----------------|
+| Login | `viewer-login.spec.js` | Login, role badge, invalid credentials |
+| Dashboard | `viewer-dashboard.spec.js` | Navigation, logout, badge display |
+| Accounts | `viewer-accounts-readonly.spec.js` | View-only: no create/edit/delete |
+| Transactions | `viewer-transactions-readonly.spec.js` | View, filter, sort, export — no create |
+| Flows | `viewer-showcase.spec.js` | 6-stage read-only demo flow |
 
-### 3. Data-Driven Testing
+### Cross-Role RBAC Tests (`tests/e2e/cross-role/`)
 
-```javascript
-for (const data of loginData.validCredentials) {
-  test(`${data.testId}: ${data.description}`, async ({ loginPage }) => {
-    await loginPage.login(data.username, data.password);
-  });
-}
-```
+Side-by-side comparison tests that validate both roles in the same test:
 
-**Benefits:**
-- Add test scenarios by adding JSON data (no code changes)
-- Clear separation of test logic and test data
-- Easy to scale coverage
-
-### 4. Component Pattern
-
-Reusable UI components that appear across multiple pages:
-
-```javascript
-class Modal {
-  constructor(page, modalSelector) { }
-  async confirm() { }
-  async cancel() { }
-  async close() { }
-}
-```
-
-### 5. Retry Pattern (Resilience)
-
-```javascript
-await RetryHelper.retry(
-  () => page.click('.flaky-element'),
-  { maxRetries: 3, operationName: 'Click flaky element' }
-);
-```
+| Test ID | What's Compared |
+|---------|----------------|
+| TC-RBAC-01 | Admin has "Open Account" button — Viewer does NOT |
+| TC-RBAC-02 | Admin has "New Transaction" button — Viewer does NOT |
+| TC-RBAC-03 | Admin has Delete buttons — Viewer does NOT |
+| TC-RBAC-04 | Both roles can view transaction history |
+| TC-RBAC-05 | Role badge differs (Admin: none, Viewer: "Read-only") |
 
 ---
 
-## File Naming Conventions
+## Page Object Model (POM)
 
-| Type | Convention | Example |
-|------|-----------|---------|
-| Page Objects | `PascalCase` + `Page.js` | `LoginPage.js` |
-| Components | `PascalCase` + `.js` | `NavigationBar.js` |
-| Test Files | `kebab-case` + `.spec.js` | `login.spec.js` |
-| Test Data | `kebab-case` + `.json` | `login.json` |
-| Config | `kebab-case` + `.config.js` | `env.config.js` |
-| Utilities | `PascalCase` + `.js` | `RetryHelper.js` |
+All page interactions are encapsulated in Page Object classes:
+
+```
+BasePage (Abstract)
+├── LoginPage        — Authentication flows
+├── DashboardPage    — Dashboard content & navigation
+├── AccountsPage     — Account CRUD operations
+└── TransactionsPage — Transaction operations & history
+```
+
+**Key principles:**
+- `BasePage` provides shared methods: `click()`, `fill()`, `getText()`, `assertVisible()`
+- Each page class defines its own selectors as constants
+- All selectors use `[data-testid]` attributes for stability
+- Structured logging: `[timestamp] [LEVEL] [PageName] message`
 
 ---
 
-## Test Organization
+## Custom Fixtures
 
-```
-tests/
-├── e2e/                    # End-to-end functional tests
-│   ├── login/             # Feature: Authentication
-│   ├── dashboard/         # Feature: Dashboard
-│   ├── accounts/          # Feature: Account Management
-│   ├── transactions/      # Feature: Transactions
-│   └── flows/             # Cross-feature workflows
-├── smoke/                  # Smoke test subset (future)
-└── regression/             # Full regression (future)
-```
+The `test-fixtures.js` file extends Playwright's `test` object with:
+
+| Fixture | Type | Description |
+|---------|------|-------------|
+| `loginPage` | Page Object | Pre-initialized `LoginPage` instance |
+| `dashboardPage` | Page Object | Pre-initialized `DashboardPage` instance |
+| `baseUrl` | String | Base URL from environment config |
+| `credentials` | Object | Admin and Viewer credential objects |
 
 ---
 
-## Configuration Strategy
+## Data-Driven Testing
 
-```
-Priority (highest to lowest):
-1. Environment variables (CI/CD overrides)
-2. .env file (local developer settings)
-3. env.config.js defaults (fallback values)
-```
+Test data is externalized in JSON files under `src/config/test-data/`:
 
----
-
-## Selector Strategy
-
-In order of preference:
-1. `data-testid` attributes (most reliable)
-2. ARIA roles (`getByRole`)
-3. Text content (`getByText`)
-4. CSS selectors (last resort)
+- **`login.json`** — Valid/invalid credentials for data-driven login tests
+- **`accounts.json`** — Account creation parameters (type, name, deposit)
+- **`transactions.json`** — Transaction parameters (type, account, amount)
 
 ---
 
-## Error Handling Strategy
+## CI/CD Pipeline
 
-1. **Smart waits** — Never use `waitForTimeout()`, always condition-based
-2. **Descriptive assertions** — Every assertion has a human-readable description
-3. **Auto-logging** — All actions are logged with timestamp and context
-4. **Screenshots on failure** — Automatic in CI
-5. **Retry logic** — Configurable retries for known flaky scenarios
+GitHub Actions workflow (`.github/workflows/ci.yml`):
+
+1. Checkout → Install Node.js → Install deps → Install browsers
+2. Run smoke tests (`npm run test:smoke`)
+3. Run full E2E suite (`npm run test:all`)
+4. Upload HTML report artifact
+
+---
+
+## Docker Architecture
+
+```
+┌─────────────────────────┐
+│    docker-compose.yml   │
+│  ┌───────────────────┐  │
+│  │  bank-tests        │  │
+│  │  (Playwright +     │  │
+│  │   Node.js 18)      │  │
+│  └───────────────────┘  │
+│  Volumes:               │
+│  - ./reports → /reports │
+└─────────────────────────┘

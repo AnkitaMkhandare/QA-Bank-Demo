@@ -1,9 +1,22 @@
+/**
+ * @file BasePage.js
+ * @description Abstract base class for all Page Objects in the framework.
+ *              Provides common actions (click, fill, select), smart waits,
+ *              assertions, and structured logging. All page objects extend this class.
+ * @module Pages/BasePage
+ * @author Ankita Mkhandare
+ * @version 2.0.0
+ * @see {@link LoginPage} {@link DashboardPage} {@link AccountsPage} {@link TransactionsPage}
+ */
+
 const { expect } = require('@playwright/test');
 
 /**
- * BasePage - Abstract base class for all Page Objects
- * Provides common actions, smart waits, and auto-logging capabilities.
- * 
+ * BasePage - Abstract base class for all Page Objects.
+ *
+ * Design Pattern: Template Method — subclasses override page-specific behavior
+ * while inheriting common navigation, interaction, and assertion methods.
+ *
  * @abstract
  * @class BasePage
  */
@@ -107,18 +120,6 @@ class BasePage {
     await element.waitFor({ state: 'visible', timeout: this.timeout });
     await element.pressSequentially(text, { delay });
     this._log('info', `Typed into "${selector}": "${text}"`);
-  }
-
-  /**
-   * Double-click on an element
-   * @param {string} selector - Element selector
-   */
-  async doubleClick(selector) {
-    const element = this.page.locator(selector);
-    await element.waitFor({ state: 'visible', timeout: this.timeout });
-    await element.highlight();
-    await element.dblclick();
-    this._log('info', `Double-clicked: ${selector}`);
   }
 
   /**

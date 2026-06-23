@@ -1,210 +1,160 @@
 # 📋 Test Strategy Document
 
-## 1. Overview
-
-This document outlines the testing strategy for the Bank Automation Framework, covering scope, approach, environments, risk assessment, and execution plan.
-
-**Application Under Test:** QA Playground Bank Demo  
-**Framework:** Playwright + JavaScript  
-**Approach:** Risk-Based Testing with Shift-Left Methodology
+> Comprehensive test strategy for the QA Bank Demo automation framework.
 
 ---
 
-## 2. Test Scope
+## 1. Scope
 
-### In Scope
-| Module | Functionality |
-|--------|--------------|
-| Authentication | Login, logout, role-based access |
-| Dashboard | Summary cards, balance display, recent transactions |
-| Accounts | CRUD operations, filtering, sorting |
-| Transactions | Create, filter by account/date, export CSV, detail view |
-| Navigation | Cross-page navigation, URL routing |
+### In-Scope
 
-### Out of Scope
-- Performance/load testing (covered by separate tools)
-- Third-party integrations (payment gateways)
-- Backend database testing (no direct DB access)
-- Mobile native app testing
+| Area | What's Tested |
+|------|--------------|
+| **Authentication** | Login/logout for Admin and Viewer roles |
+| **Accounts** | CRUD operations (Admin), read-only (Viewer) |
+| **Transactions** | Deposit, Withdrawal, Transfer (Admin), view-only (Viewer) |
+| **RBAC** | Role-based access control — Admin vs Viewer permissions |
+| **Negative** | Boundary values, invalid inputs, error messages |
+| **Security** | XSS prevention, SQL injection prevention |
+| **Accessibility** | WCAG 2.1 AA compliance |
+| **Visual** | Screenshot-based regression |
+| **Performance** | Page load times, LCP, FCP |
+| **API** | REST endpoint validation |
 
----
-
-## 3. Test Levels
-
-```
-┌──────────────────────────────────────────────┐
-│          E2E / Integration Tests             │  ← This framework
-│         (Business workflow validation)        │
-├──────────────────────────────────────────────┤
-│            Component/UI Tests                │  ← Visual regression
-│         (Individual page validation)          │
-├──────────────────────────────────────────────┤
-│              API Tests                       │  ← Future: RestAssured
-│         (Service-level validation)            │
-├──────────────────────────────────────────────┤
-│             Unit Tests                       │  ← Dev responsibility
-│         (Code-level validation)               │
-└──────────────────────────────────────────────┘
-```
+### Out-of-Scope
+- Database-level testing
+- Load/stress testing (1000+ concurrent users)
+- Mobile-native application testing
 
 ---
 
-## 4. Test Types
+## 2. Test Types
 
-| Type | Tool | Purpose |
-|------|------|---------|
-| **Functional E2E** | Playwright | Validate business workflows |
-| **Cross-Browser** | Playwright (multi-project) | Browser compatibility |
-| **Responsive** | Playwright viewports | Mobile/tablet layouts |
-| **Data-Driven** | JSON test data | Input variation coverage |
-| **Regression** | Full suite | Prevent regressions |
-| **Smoke** | Tagged subset | Quick health check |
-| **Visual** | `toHaveScreenshot()` | Pixel-level comparison (future) |
-| **Accessibility** | axe-core (future) | WCAG compliance |
+### 2.1 Functional E2E Tests
+
+**Part 1 — Admin Role (Full CRUD):**
+- Login with valid/invalid credentials
+- Dashboard content and navigation
+- Account creation via wizard, inline editing, deletion
+- Transaction creation (deposit, withdrawal, transfer)
+- Negative scenarios (empty fields, insufficient funds, same-account transfer)
+
+**Part 2 — Viewer Role (Read-Only):**
+- Login and role badge verification (`Read-only` badge visible)
+- Dashboard navigation (all links accessible)
+- Accounts page: table visible, create/edit/delete buttons **hidden**
+- Transactions page: history visible, filters/sort work, create button **hidden**
+- Export and pagination still functional
+
+**Cross-Role RBAC:**
+- Side-by-side comparison: Admin sees CRUD buttons, Viewer does not
+- Role badge differentiation
+- Both roles can read data
+
+### 2.2 Security Tests
+- XSS payload injection in description fields
+- SQL injection attempts in input fields
+- Authentication bypass attempts (direct URL navigation)
+
+### 2.3 Accessibility Tests
+- WCAG 2.1 AA compliance using axe-core
+- Keyboard navigation support
+- Color contrast checks
+- ARIA attributes validation
+
+### 2.4 Visual Regression Tests
+- Login page screenshot comparison
+- Dashboard layout consistency
+- Accounts page visual stability
+
+### 2.5 Performance Tests
+- Page load time < 3 seconds
+- Largest Contentful Paint (LCP) measurement
+- First Contentful Paint (FCP) measurement
+
+### 2.6 API Tests
+- Account listing endpoint validation
+- Transaction history endpoint validation
+- Response schema validation
 
 ---
 
-## 5. Test Environments
+## 3. RBAC Test Matrix
 
-| Environment | URL | Purpose | Frequency |
-|-------------|-----|---------|-----------|
-| QA | qaplayground.com/bank | Development validation | Every PR |
-| Staging | staging.qaplayground.com | Pre-release validation | Nightly |
-| Production | prod.qaplayground.com | Post-deployment verification | On-demand |
-
----
-
-## 6. Risk-Based Test Prioritization
-
-### High Risk (Critical Path)
-- ❗ Login/Authentication (security gate)
-- ❗ Account creation (core business function)
-- ❗ Transaction processing (financial accuracy)
-- ❗ Balance calculations (data integrity)
-
-### Medium Risk
-- ⚠️ Account editing
-- ⚠️ Transaction filtering
-- ⚠️ CSV export
-- ⚠️ Navigation flow
-
-### Low Risk
-- ℹ️ UI cosmetics
-- ℹ️ Sort order
-- ℹ️ Date formatting
-- ℹ️ Tooltip display
+| Permission | Admin | Viewer | Enforcement Method |
+|-----------|:-----:|:------:|-------------------|
+| Login | ✅ | ✅ | Both can authenticate |
+| View Dashboard | ✅ | ✅ | Content visible |
+| View Accounts | ✅ | ✅ | Table visible |
+| Create Account | ✅ | ❌ | Wizard button **removed from DOM** |
+| Edit Account | ✅ | ❌ | Inline edit **does not activate** |
+| Delete Account | ✅ | ❌ | Delete buttons **removed from DOM** |
+| View Transactions | ✅ | ✅ | Table visible |
+| Create Transaction | ✅ | ❌ | Button **removed from DOM** |
+| Filter/Sort | ✅ | ✅ | Read operations allowed |
+| Export Data | ✅ | ✅ | Export button enabled |
+| Pagination | ✅ | ✅ | Pagination controls work |
+| Role Badge | None | `Read-only` | `[data-testid="viewer-badge"]` |
 
 ---
 
-## 7. Test Execution Plan
+## 4. Test Environment
 
-### Per Pull Request (< 5 min)
+| Property | Value |
+|----------|-------|
+| **Application URL** | `https://qaplayground.com/bank` |
+| **Admin Credentials** | `admin` / `admin123` |
+| **Viewer Credentials** | `viewer` / `viewer123` |
+| **Browsers** | Chromium, Firefox, WebKit |
+| **Node.js** | 18+ |
+| **CI/CD** | GitHub Actions |
+| **Containerization** | Docker |
+
+---
+
+## 5. Test Execution Strategy
+
+### Execution Order
+
+1. **Smoke Tests** — Critical path validation (login + basic navigation)
+2. **Part 1: Admin** — Full CRUD operations
+3. **Part 2: Viewer** — Read-only validation
+4. **Cross-Role RBAC** — Permission comparison
+5. **Negative Tests** — Error handling and boundary values
+6. **Security Tests** — XSS and SQL injection prevention
+7. **Accessibility** — WCAG compliance
+8. **Visual** — Screenshot regression
+9. **Performance** — Load time metrics
+10. **API** — Endpoint validation
+
+### NPM Scripts
+
 ```bash
-npm run test:smoke  # @smoke + @critical tags only
-```
-- Chromium only
-- Parallel execution
-- Blocks merge on failure
-
-### Nightly Regression (< 30 min)
-```bash
-npm run test:ci  # Full suite, all browsers
-```
-- Chromium + Firefox + WebKit
-- All test tags
-- Reports uploaded as artifacts
-- Email notification on failure
-
-### Release Validation
-```bash
-npm run docker:full  # All browsers in containers
-```
-- Full regression + visual regression
-- Performance baselines
-- Accessibility scan
-
----
-
-## 8. Test Data Strategy
-
-| Source | Usage |
-|--------|-------|
-| JSON files (`src/config/test-data/`) | Static test scenarios |
-| Environment variables | Credentials, URLs |
-| Dynamic generation | Unique account names (timestamp-based) |
-| Application state | Read initial balances before mutations |
-
-### Data Independence
-- Each test creates its own test data
-- No dependency between tests
-- Tests clean up after themselves when possible
-
----
-
-## 9. Defect Management
-
-| Severity | Response | Example |
-|----------|----------|---------|
-| **Critical** | Block release, fix immediately | Login broken, data loss |
-| **High** | Fix in current sprint | Transaction fails |
-| **Medium** | Fix in next sprint | Filter doesn't work |
-| **Low** | Backlog | UI alignment issue |
-
-### Known Issues Tracking
-Known application bugs are documented with `test.fixme()` annotations:
-```javascript
-test.fixme(true, 'Dashboard total balance mismatch (app bug)');
+npm run test:admin          # Part 1 only
+npm run test:viewer         # Part 2 only
+npm run test:rbac           # Cross-role only
+npm run test:all            # All E2E tests
+npm run test:full-suite     # Everything (E2E + API + visual + a11y + security + perf)
 ```
 
 ---
 
-## 10. Test Metrics & KPIs
+## 6. Defect Severity Classification
 
-| Metric | Target |
-|--------|--------|
-| Pass rate | > 95% |
-| Test execution time (smoke) | < 5 min |
-| Test execution time (regression) | < 30 min |
-| Flaky test rate | < 3% |
-| Test coverage (features) | 100% critical paths |
-| Defect detection rate | Track per release |
-
----
-
-## 11. Entry & Exit Criteria
-
-### Entry Criteria
-- ✅ Application deployed to test environment
-- ✅ Test data available
-- ✅ Previous critical defects resolved
-- ✅ Test environment stable
-
-### Exit Criteria
-- ✅ All smoke tests passing
-- ✅ No critical/high defects open
-- ✅ Test report reviewed
-- ✅ Known issues documented
+| Severity | Definition | Example |
+|----------|-----------|---------|
+| **Blocker** | Core function completely broken | Login fails for all users |
+| **Critical** | Major feature broken | Viewer can create accounts (RBAC bypass) |
+| **High** | Feature partially broken | Transaction created but no confirmation |
+| **Medium** | Minor defect with workaround | Filter resets after sort |
+| **Low** | Cosmetic issue | Badge text alignment off |
 
 ---
 
-## 12. Tools & Infrastructure
+## 7. Reporting
 
-| Tool | Purpose |
-|------|---------|
-| **Playwright** | Browser automation |
-| **GitHub Actions** | CI/CD orchestration |
-| **Docker** | Reproducible environments |
-| **HTML Reporter** | Visual test reports |
-| **JUnit XML** | CI integration |
-| **Git** | Version control |
-
----
-
-## 13. Roles & Responsibilities
-
-| Role | Responsibility |
-|------|---------------|
-| QA Engineer | Test design, framework maintenance, execution |
-| Developer | Unit tests, bug fixes, testability support |
-| Tech Lead | Review test strategy, approve coverage |
-| DevOps | CI/CD pipeline, environment management |
+- **HTML Reports** — Auto-generated by Playwright
+- **Screenshots** — Captured on test failure
+- **Videos** — Recorded for showcase tests
+- **Traces** — Playwright trace viewer for debugging
+- **CI Artifacts** — Reports uploaded as GitHub Actions artifacts
