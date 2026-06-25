@@ -541,7 +541,7 @@ The codebase follows strict quality standards:
 
 **Ankita Mkhandare**
 - GitHub: [@AnkitaMkhandare](https://github.com/AnkitaMkhandare)
-- Role: Senior QA Engineer | 10+ Years in Test Automation
+- Role: Senior QA Engineer | 5+ Years in Test Automation
 
 ---
 
