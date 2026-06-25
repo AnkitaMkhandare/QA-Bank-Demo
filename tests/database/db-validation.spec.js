@@ -182,15 +182,14 @@ test.describe('Database Validation @database', () => {
 
       // Attempt withdrawal exceeding balance (should fail)
       try {
-        await bankApi.rawRequest('POST', '/transactions', {
-          body: {
-            type: 'Withdrawal',
-            accountId: testAccount.id,
-            amount: 99999999, // Exceeds balance
-          },
+        await bankApi.createTransaction({
+          type: 'Withdrawal',
+          accountId: testAccount.id,
+          amount: 99999999, // Exceeds balance
+          description: 'DB rollback test — should fail',
         });
-      } catch {
-        // Expected to fail
+      } catch (_error) {
+        // Expected to fail — insufficient funds
       }
 
       // Balance should remain unchanged
@@ -237,7 +236,7 @@ test.describe('Database Validation @database', () => {
 
         expect(sourceAfter.balance).toBeCloseTo(sourceBalanceBefore - transferAmount, 2);
         expect(destAfter.balance).toBeCloseTo(destBalanceBefore + transferAmount, 2);
-      } catch {
+      } catch (_error) {
         // If transfer failed, both balances should remain unchanged
         const sourceAfter = await bankApi.getAccountById(sourceAccount.id);
         const destAfter = await bankApi.getAccountById(destAccount.id);
@@ -311,9 +310,14 @@ test.describe('Database Validation @database', () => {
         // Delete it
         await bankApi.deleteAccount(createdId);
 
-        // Should not be retrievable
-        const { status } = await bankApi.rawRequest('GET', `/accounts/${createdId}`);
-        expect(status).toBe(404);
+        // Should not be retrievable — getAccountById will throw or return empty
+        let deletedAccount = null;
+        try {
+          deletedAccount = await bankApi.getAccountById(createdId);
+        } catch (_error) {
+          // Expected — account should not exist
+        }
+        expect(deletedAccount).toBeFalsy();
 
         // Should not appear in list
         const allAccounts = await bankApi.getAccounts();

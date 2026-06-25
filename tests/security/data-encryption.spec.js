@@ -316,7 +316,7 @@ test.describe('Data Encryption & SSL Validation @security @encryption', () => {
           try {
             const body = await response.text();
             apiResponses.push({ url: response.url(), body });
-          } catch {
+          } catch (_error) {
             // Ignore non-text responses
           }
         }

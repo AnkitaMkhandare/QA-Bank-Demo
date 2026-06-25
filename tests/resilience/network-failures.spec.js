@@ -84,7 +84,7 @@ test.describe('Network Resilience & Failure Handling @resilience @network', () =
       // Try to login (should fail gracefully)
       await loginPage.enterUsername('admin');
       await loginPage.enterPassword('admin123');
-      await loginPage.clickLogin();
+      await loginPage.clickLoginButton();
 
       await page.waitForTimeout(3000);
 
@@ -432,14 +432,14 @@ test.describe('Network Resilience & Failure Handling @resilience @network', () =
       // Try to click login multiple times rapidly (impatient user)
       await loginPage.enterUsername('admin');
       await loginPage.enterPassword('admin123');
-      await loginPage.clickLogin();
+      await loginPage.clickLoginButton();
       await page.waitForTimeout(500);
 
       // Try clicking again before response
       try {
-        await loginPage.clickLogin();
-      } catch {
-        // Button might be disabled or removed
+        await loginPage.clickLoginButton();
+      } catch (_error) {
+        // Button might be disabled or removed — expected
       }
 
       await page.waitForTimeout(5000);
