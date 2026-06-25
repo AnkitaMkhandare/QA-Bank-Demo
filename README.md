@@ -42,6 +42,11 @@ This framework automates end-to-end testing for a **banking web application** ([
 - **Accessibility compliance** (WCAG 2.1 AA)
 - **Visual regression** testing
 - **Performance metrics** (page load, LCP, FCP)
+- **Banking security** (MFA, session management, encryption, account lockout)
+- **Compliance validation** (PCI DSS, GDPR)
+- **Bill payments** (utility, scheduled, recurring)
+- **Database validation** (integrity, ACID compliance)
+- **Network resilience** (disconnection, timeout, throttling)
 
 ### Application Under Test
 
@@ -175,7 +180,10 @@ bank-project/
 │   ├── api/                          # API test specs
 │   ├── visual/                       # Visual regression tests
 │   ├── accessibility/                # WCAG compliance tests
-│   ├── security/                     # Security tests (XSS, SQLi)
+│   ├── security/                     # Security tests (XSS, SQLi, MFA, SSL)
+│   ├── compliance/                   # PCI DSS & GDPR compliance tests
+│   ├── database/                     # Database validation tests
+│   ├── resilience/                   # Network failure & resilience tests
 │   └── performance/                  # Page load performance tests
 ├── playwright.config.js              # Playwright configuration
 ├── package.json                      # Dependencies & npm scripts
@@ -267,6 +275,24 @@ npm run test:full-suite
 npm run test:chromium    # Google Chrome
 npm run test:firefox     # Mozilla Firefox
 npm run test:webkit      # Apple Safari
+npm run test:edge        # Microsoft Edge
+npm run test:all-browsers  # All browsers (Chrome + Firefox + Safari + Edge)
+```
+
+### Run by Security & Compliance
+
+```bash
+npm run test:security              # All security tests
+npm run test:security:mfa          # MFA, session management, account lockout
+npm run test:security:encryption   # SSL/TLS, data encryption, HTTPS
+
+npm run test:compliance            # All compliance tests
+npm run test:compliance:pci        # PCI DSS compliance
+npm run test:compliance:gdpr       # GDPR compliance
+
+npm run test:database              # Database validation
+npm run test:resilience            # Network failure handling
+npm run test:bill-payments         # Bill payment scenarios
 ```
 
 ### Debugging
@@ -334,12 +360,19 @@ The **Viewer** user can only view data — all write operations are blocked:
 | **E2E — Viewer** | 20+ | Read-only validation on all pages |
 | **RBAC** | 5 | Admin vs Viewer permission comparison |
 | **Negative** | 10+ | Boundary values, error handling |
-| **Security** | 5+ | XSS prevention, SQL injection, auth bypass |
+| **Security — Auth** | 5+ | XSS prevention, SQL injection, auth bypass |
+| **Security — MFA & Sessions** | 16 | Multi-factor auth, session management, account lockout |
+| **Security — Encryption** | 16 | SSL/TLS validation, data masking, HTTPS enforcement |
+| **Compliance — PCI DSS** | 14 | Card data protection, encryption, access control, audit |
+| **Compliance — GDPR** | 15 | Consent, right to erasure, data portability, privacy |
+| **Bill Payments** | 15 | Utility payments, scheduling, payee management |
+| **Database Validation** | 14 | Referential integrity, ACID compliance, type validation |
+| **Network Resilience** | 12 | Disconnection, timeouts, throttling, error recovery |
 | **Accessibility** | 5+ | WCAG 2.1 AA compliance (axe-core) |
 | **Visual** | 3+ | Screenshot-based regression testing |
-| **Performance** | 3+ | Page load, LCP, FCP metrics |
-| **API** | 5+ | REST endpoint validation |
-| **Total** | **85+** | Comprehensive full-stack coverage |
+| **Performance** | 7+ | Page load, LCP, FCP, CLS, network throttling |
+| **API** | 15+ | REST endpoint & schema validation |
+| **Total** | **185+** | Enterprise full-stack coverage |
 
 ---
 
@@ -444,9 +477,45 @@ SLOW_MO=0
 Key settings in `playwright.config.js`:
 - **Retries:** 1 in CI, 0 locally
 - **Workers:** 4 parallel (configurable)
-- **Browsers:** Chromium, Firefox, WebKit
+- **Browsers:** Chromium, Firefox, WebKit, Edge
 - **Timeouts:** 30s per test, 10s per action
 - **Artifacts:** Screenshots, videos, traces on failure
+
+---
+
+## 🏦 Banking Security & Compliance Specification
+
+This framework addresses the following **enterprise banking test specifications**:
+
+### Key Testing Areas
+
+| Area | Status | Test File | Tests |
+|------|:------:|-----------|:-----:|
+| **Authentication Security** | ✅ Implemented | `tests/security/auth-security.spec.js` | 20+ |
+| **Multi-Factor Authentication** | 🔮 Provisioned | `tests/security/mfa-session.spec.js` | 5 |
+| **Session Management** | 🔮 Provisioned | `tests/security/mfa-session.spec.js` | 6 |
+| **Account Lockout** | 🔮 Provisioned | `tests/security/mfa-session.spec.js` | 5 |
+| **Transaction Processing** | ✅ Implemented | `tests/e2e/part1-admin/transactions/` | 30+ |
+| **Bill Payments** | 🔮 Provisioned | `tests/e2e/part1-admin/transactions/admin-bill-payments.spec.js` | 15 |
+| **Data Encryption & SSL** | ✅ Partial | `tests/security/data-encryption.spec.js` | 16 |
+| **PCI DSS Compliance** | ✅ Partial | `tests/compliance/pci-dss.spec.js` | 14 |
+| **GDPR Compliance** | ✅ Partial | `tests/compliance/gdpr.spec.js` | 15 |
+| **Error Handling** | ✅ Implemented | `tests/e2e/part1-admin/transactions/admin-transactions-negative.spec.js` | 12 |
+| **Network Failures** | ✅ Implemented | `tests/resilience/network-failures.spec.js` | 12 |
+| **Database Validation** | ✅ Partial | `tests/database/db-validation.spec.js` | 14 |
+
+### Advanced Features
+
+| Feature | Status | Implementation |
+|---------|:------:|---------------|
+| **Cross-browser** (Chrome, Firefox, Safari, Edge) | ✅ | `playwright.config.js` — 6 browser projects |
+| **API Testing for Backend Services** | ✅ | `tests/api/` — Full REST validation + schema |
+| **Database Validation** | ✅ | `tests/database/` — ACID, integrity, types |
+| **Performance Testing Integration** | ✅ | `tests/performance/` — TTFB, FCP, LCP, CLS |
+
+### Legend
+- ✅ **Implemented** — Active tests that run against the application
+- 🔮 **Provisioned** — Tests structured and ready for when the AUT supports the feature (uses `test.skip()`)
 
 ---
 

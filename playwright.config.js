@@ -118,5 +118,14 @@ module.exports = defineConfig({
         ...devices['iPhone 14'],
       },
     },
+
+    // ── Cross-browser: Microsoft Edge ─────────────────────────────────────────────
+    {
+      name: 'edge',
+      use: {
+        ...devices['Desktop Edge'],
+        channel: 'msedge',
+      },
+    },
   ],
 });
