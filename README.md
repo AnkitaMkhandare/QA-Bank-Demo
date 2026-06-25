@@ -25,6 +25,8 @@
 - [Framework Design Patterns](#-framework-design-patterns)
 - [Configuration](#-configuration)
 - [Test Results](#-test-results)
+- [Banking Security & Compliance Specification](#-banking-security--compliance-specification)
+- [Code Quality & Refinements](#-code-quality--refinements)
 - [Contributing](#-contributing)
 
 ---
@@ -38,7 +40,7 @@ This framework automates end-to-end testing for a **banking web application** ([
 - **Financial transactions** (Deposit, Withdrawal, Transfer)
 - **Role-Based Access Control (RBAC)** — verifying what each role can and cannot do
 - **Security validation** (XSS, SQL Injection prevention)
-- **Cross-browser compatibility** (Chromium, Firefox, WebKit)
+- **Cross-browser compatibility** (Chromium, Firefox, WebKit, Edge)
 - **Accessibility compliance** (WCAG 2.1 AA)
 - **Visual regression** testing
 - **Performance metrics** (page load, LCP, FCP)
@@ -265,7 +267,7 @@ npm run test:smoke
 # Full regression suite
 npm run test:all
 
-# Complete suite (E2E + API + Visual + A11y + Security + Performance)
+# Complete suite (E2E + API + Visual + A11y + Security + Compliance + Performance)
 npm run test:full-suite
 ```
 
@@ -378,14 +380,14 @@ The **Viewer** user can only view data — all write operations are blocked:
 
 ## 📊 Test Results
 
-For the complete, enterprise-grade test case results document with **85 test cases**, detailed steps, expected vs actual results, and sign-off section, see:
+For the complete, enterprise-grade test case results document with detailed steps, expected vs actual results, and sign-off section, see:
 
 👉 **[docs/TEST-RESULTS.md](docs/TEST-RESULTS.md)**
 
 Highlights:
-- **96.5% pass rate** (82 passed, 0 failed, 3 skipped)
-- Covers **10 test categories** (E2E Admin, E2E Viewer, RBAC, Security, A11y, Visual, Performance, API)
+- Covers **17 test categories** (E2E Admin, E2E Viewer, RBAC, Security, MFA, Encryption, PCI DSS, GDPR, Database, Resilience, A11y, Visual, Performance, API, Bill Payments)
 - Professional format with TC-IDs, priorities, preconditions, and defect tracking
+- **185+ total test cases** across all categories
 
 ---
 
@@ -515,7 +517,23 @@ This framework addresses the following **enterprise banking test specifications*
 
 ### Legend
 - ✅ **Implemented** — Active tests that run against the application
+- ✅ **Partial** — Tests run and validate what the AUT supports; remaining items provisioned
 - 🔮 **Provisioned** — Tests structured and ready for when the AUT supports the feature (uses `test.skip()`)
+
+---
+
+## 🔧 Code Quality & Refinements
+
+The codebase follows strict quality standards:
+
+| Practice | Details |
+|----------|---------|
+| **Method Alignment** | All test files use exact Page Object and API Service method names (e.g., `clickLoginButton()`, `getAccountById()`) |
+| **Error Handling** | Catch blocks use `catch (_error)` pattern for linting compliance |
+| **API Compatibility** | Database validation tests use `BankApiService` methods exclusively — no raw HTTP calls |
+| **Consistent Imports** | Custom fixtures used for UI tests; `@playwright/test` for API-only tests |
+| **Test Isolation** | CRUD tests use `try/finally` blocks with cleanup helpers |
+| **Structured Annotations** | All tests include `testId`, `severity`, `category` annotations for reporting |
 
 ---
 
